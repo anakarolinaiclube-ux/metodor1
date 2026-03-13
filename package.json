@@ -1,8 +1,10 @@
 {
   "name": "respira-protocolo-dia1",
   "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "google-tts-api": "^2.0.2"
-  }
+  "description": "Micro SaaS - Protocolo Dia 1 Plataforma Respira",
+  "main": "api/ai.js",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {}
 }
