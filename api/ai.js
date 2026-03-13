@@ -1,21 +1,15 @@
-import * as googleTTS from 'google-tts-api';
-import fetch from 'node-fetch';
-
-export default async function handler(req, res) {
+export default function handler(req, res) {
   const { name } = req.query;
-  if (!name) return res.status(400).json({ error: 'Nome é obrigatório' });
+  const quotes = [
+    "A respiração é a ponte entre o corpo e a mente.",
+    "Sua liberdade começa com uma única decisão.",
+    "O subconsciente não dorme, ele aprende.",
+    "Sinta o ar entrando, sinta a vida mudando."
+  ];
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
-  const text = `Olá ${name}. Bem-vindo ao primeiro protocolo. Durante os próximos minutos, seu cérebro começará a aprender uma nova forma de responder aos antigos gatilhos.`;
-
-  try {
-    const url = googleTTS.getAudioUrl(text, { lang: 'pt-BR', slow: false, host: 'https://translate.google.com' });
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.send(buffer);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao gerar áudio' });
-  }
+  res.status(200).json({
+    message: `Olá ${name}, preparamos seu ambiente.`,
+    quote: randomQuote
+  });
 }
