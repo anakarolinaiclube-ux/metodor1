@@ -96,8 +96,8 @@
             try {
                 // 1. Busca Áudio Personalizado (API)
                 const response = await fetch(`/api/ai?name=${name}`);
-                const blob = await response.blob();
-                const introUrl = URL.createObjectURL(blob);
+                const data = await response.json();
+                
                 introAudio = new Audio(introUrl);
                 
                 // 2. Configura a fila: Quando a intro acabar, começa o principal
