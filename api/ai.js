@@ -1,20 +1,15 @@
-import googleTTS from "google-tts-api";
-
 export default function handler(req, res) {
-
   const { name } = req.query;
+  const quotes = [
+    "A respiração é a ponte entre o corpo e a mente.",
+    "Sua liberdade começa com uma única decisão.",
+    "O subconsciente não dorme, ele aprende.",
+    "Sinta o ar entrando, sinta a vida mudando."
+  ];
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
-  if (!name) {
-    return res.status(400).json({ error: "Nome é obrigatório" });
-  }
-
-  const text = `Olá ${name}. Bem vindo ao primeiro protocolo. Respire profundamente e prepare sua mente para uma nova percepção de liberdade.`;
-
-  const url = googleTTS.getAudioUrl(text, {
-    lang: "pt-BR",
-    slow: false,
+  res.status(200).json({
+    message: `Olá ${name}, preparamos seu ambiente.`,
+    quote: randomQuote
   });
-
-  res.status(200).json({ url });
-
 }
