@@ -1,35 +1,20 @@
-import * as googleTTS from 'google-tts-api';
-import fetch from 'node-fetch';
+import googleTTS from "google-tts-api";
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
+
   const { name } = req.query;
 
   if (!name) {
-    return res.status(400).json({ error: 'Nome é obrigatório' });
+    return res.status(400).json({ error: "Nome é obrigatório" });
   }
 
-  const text = `Olá ${name}. Bem-vindo ao primeiro protocolo. Durante os próximos minutos, seu cérebro começará a aprender uma nova forma de responder aos antigos gatilhos.`;
+  const text = `Olá ${name}. Bem vindo ao primeiro protocolo. Respire profundamente e prepare sua mente para uma nova percepção de liberdade.`;
 
-  try {
-    // 1. Gera a URL do áudio (PT-BR)
-    const url = googleTTS.getAudioUrl(text, {
-      lang: 'pt-BR',
-      slow: false,
-      host: 'https://translate.google.com',
-    });
+  const url = googleTTS.getAudioUrl(text, {
+    lang: "pt-BR",
+    slow: false,
+  });
 
-    // 2. Busca o áudio real
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+  res.status(200).json({ url });
 
-    // 3. Retorna o áudio como stream
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Length', buffer.length);
-    res.send(buffer);
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Erro ao gerar áudio personalizado' });
-  }
 }
