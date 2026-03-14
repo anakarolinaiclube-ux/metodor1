@@ -182,7 +182,7 @@
             height: 100px;
             border-radius: 50%;
             background: rgba(194, 155, 98, 0.2);
-            display: flex;
+            display: flex; /* Alternado no JS */
             justify-content: center;
             align-items: center;
             margin: 0 auto 30px;
@@ -197,7 +197,7 @@
         }
 
         .status-text { font-size: 1rem; color: var(--accent-gold); font-weight: 600; margin-bottom: 10px; }
-        .sub-status { font-size: 0.85rem; color: #A0A0A0; }
+        .sub-status { font-size: 0.85rem; color: #A0A0A0; margin-bottom: 25px; }
         
         /* SPINNER */
         .spinner {
@@ -216,7 +216,8 @@
 <body>
 
     <header>
-        <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+        <!-- LINK EXTERNO "VOLTAR" EDITÁVEL AQUI -->
+        <a href="https://acessomr.vercel.app/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
         <a href="/" class="logo">RESPIRA<span>.</span></a>
     </header>
 
@@ -244,13 +245,20 @@
                 </button>
             </div>
 
-            <!-- Interface Tocando -->
+            <!-- Interface de Preparação e Tocando -->
             <div id="playing-ui" class="playing-ui">
-                <div class="pulsing-circle">
+                <div class="status-text" id="status-text">Conectando...</div>
+                <div class="sub-status" id="sub-status">Aguarde...</div>
+                
+                <!-- Animação do círculo (escondida inicialmente) -->
+                <div class="pulsing-circle" id="pulsing-circle" style="display: none;">
                     <i class="fas fa-headphones-alt"></i>
                 </div>
-                <div class="status-text" id="status-text">Conectando...</div>
-                <div class="sub-status" id="sub-status">Mantenha a tela ligada</div>
+
+                <!-- Botão explícito para desbloquear o áudio no mobile -->
+                <button id="actualPlayBtn" class="btn-play" style="display: none;">
+                    <i class="fas fa-play"></i> Começar a Ouvir
+                </button>
             </div>
         </div>
     </div>
@@ -262,16 +270,19 @@
         const playingUi = document.getElementById('playing-ui');
         const spinner = document.getElementById('spinner');
         const btnText = startBtn.querySelector('span');
+        
+        // Elementos da nova interface de Play
         const statusText = document.getElementById('status-text');
         const subStatus = document.getElementById('sub-status');
+        const pulsingCircle = document.getElementById('pulsing-circle');
+        const actualPlayBtn = document.getElementById('actualPlayBtn');
 
-        // Um áudio silencioso (Base64) minúsculo para desbloquear o sistema de som do celular
-        const silentAudio = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OQAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIwDY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/zkkQAAgAA0wgAAAAAAAAAAAAAABzQAAAAD7+/+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+";
-        
         // Instanciando os áudios
-        const introAudio = new Audio(silentAudio);
+        const introAudio = new Audio();
+        // Áudio fixo do protocolo (URL Placeholder)
         const mainAudio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
 
+        // 1. Usuário digita o nome e a API é chamada
         startBtn.addEventListener('click', async () => {
             const name = userNameInput.value.trim();
             if (!name) {
@@ -279,11 +290,6 @@
                 userNameInput.focus();
                 return;
             }
-
-            // HACK DE DESBLOQUEIO DE ÁUDIO NO MOBILE (Safari/Chrome)
-            // Toca e pausa instantaneamente no clique (ação síncrona do usuário)
-            introAudio.play().then(() => introAudio.pause()).catch(() => {});
-            mainAudio.play().then(() => mainAudio.pause()).catch(() => {});
 
             // UI Loading State
             startBtn.disabled = true;
@@ -295,28 +301,55 @@
                 const response = await fetch(`/api/ai?name=${encodeURIComponent(name)}`);
                 const data = await response.json();
 
-                // Transição de UI para "Tocando"
+                // Transição de UI para "Pronto para tocar"
                 setupUi.style.display = 'none';
                 playingUi.style.display = 'flex';
 
                 if (data.audioUrl) {
-                    // Toca a introdução com o nome (já com o bloqueio contornado)
-                    statusText.innerText = "Preparando sua mente...";
-                    subStatus.innerText = "Ouça a introdução";
                     introAudio.src = data.audioUrl;
-                    
-                    // .play() agora funciona perfeitamente em celulares!
-                    introAudio.play().catch(e => console.error("Erro ao tocar intro:", e));
-                } else {
-                    // Fallback de segurança se a API falhar
-                    playMainAudio();
                 }
+
+                // Libera o botão de Play explícito para o usuário (Desbloqueia o mobile)
+                statusText.innerText = "Sessão Pronta";
+                subStatus.innerText = "Clique no botão abaixo para iniciar.";
+                actualPlayBtn.style.display = 'flex';
 
             } catch (error) {
                 console.error('Erro na API:', error);
-                // Fallback de segurança: vai direto para o áudio principal
+                
+                // Fallback de segurança: Exibe botão de Play mesmo se a API falhar
                 setupUi.style.display = 'none';
                 playingUi.style.display = 'flex';
+                statusText.innerText = "Sessão Pronta";
+                subStatus.innerText = "Clique no botão abaixo para iniciar.";
+                actualPlayBtn.style.display = 'flex';
+            }
+        });
+
+        // 2. O usuário clica em "Começar a Ouvir"
+        // Este é o pulo do gato: Por ser uma ação real de clique, o Safari/Chrome
+        // permite que os áudios toquem a partir daqui sem restrições.
+        actualPlayBtn.addEventListener('click', () => {
+            // Toca e pausa instantaneamente o áudio secundário para desbloqueá-lo no celular
+            mainAudio.play().then(() => {
+                mainAudio.pause();
+                mainAudio.currentTime = 0;
+            }).catch(() => {});
+
+            // Ajusta a Interface
+            actualPlayBtn.style.display = 'none';
+            pulsingCircle.style.display = 'flex';
+
+            // Verifica se a intro foi carregada com sucesso
+            if (introAudio.src && introAudio.src !== window.location.href) {
+                statusText.innerText = "Preparando sua mente...";
+                subStatus.innerText = "Ouça a introdução";
+                introAudio.play().catch(e => {
+                    console.error("Erro ao tocar intro:", e);
+                    playMainAudio(); // Se der erro, pula para o áudio principal
+                });
+            } else {
+                // Se não houver intro, vai direto pro principal
                 playMainAudio();
             }
         });
@@ -326,10 +359,11 @@
             playMainAudio();
         });
 
+        // Toca o áudio principal da terapia
         function playMainAudio() {
             statusText.innerText = "Sessão em Andamento";
             subStatus.innerText = "Dia 1: Quebrando a Rotina";
-            mainAudio.currentTime = 0; // Garante que comece do zero
+            mainAudio.currentTime = 0; 
             mainAudio.play().catch(e => console.error("Erro ao tocar áudio principal:", e));
         }
     </script>
