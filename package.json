@@ -1,10 +1,11 @@
 {
-  "name": "respira-protocolo-dia1",
+  "name": "respira-protocolo-ai",
   "version": "1.0.0",
-  "description": "Micro SaaS - Protocolo Dia 1 Plataforma Respira",
-  "main": "api/ai.js",
+  "description": "Micro-SaaS Método Respira com TTS",
   "scripts": {
-    "start": "serve ."
+    "start": "echo 'Run via Vercel CLI'"
   },
-  "dependencies": {}
+  "engines": {
+    "node": ">=18.x"
+  }
 }
