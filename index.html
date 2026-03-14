@@ -265,9 +265,11 @@
         const statusText = document.getElementById('status-text');
         const subStatus = document.getElementById('sub-status');
 
+        // Um áudio silencioso (Base64) minúsculo para desbloquear o sistema de som do celular
+        const silentAudio = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//OQAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIwDY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/zkkQAAgAA0wgAAAAAAAAAAAAAABzQAAAAD7+/+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/v7+";
+        
         // Instanciando os áudios
-        const introAudio = new Audio();
-        // Áudio fixo do protocolo (URL Placeholder)
+        const introAudio = new Audio(silentAudio);
         const mainAudio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'); 
 
         startBtn.addEventListener('click', async () => {
@@ -277,6 +279,11 @@
                 userNameInput.focus();
                 return;
             }
+
+            // HACK DE DESBLOQUEIO DE ÁUDIO NO MOBILE (Safari/Chrome)
+            // Toca e pausa instantaneamente no clique (ação síncrona do usuário)
+            introAudio.play().then(() => introAudio.pause()).catch(() => {});
+            mainAudio.play().then(() => mainAudio.pause()).catch(() => {});
 
             // UI Loading State
             startBtn.disabled = true;
@@ -293,11 +300,13 @@
                 playingUi.style.display = 'flex';
 
                 if (data.audioUrl) {
-                    // Toca a introdução com o nome
+                    // Toca a introdução com o nome (já com o bloqueio contornado)
                     statusText.innerText = "Preparando sua mente...";
                     subStatus.innerText = "Ouça a introdução";
                     introAudio.src = data.audioUrl;
-                    introAudio.play();
+                    
+                    // .play() agora funciona perfeitamente em celulares!
+                    introAudio.play().catch(e => console.error("Erro ao tocar intro:", e));
                 } else {
                     // Fallback de segurança se a API falhar
                     playMainAudio();
@@ -320,7 +329,8 @@
         function playMainAudio() {
             statusText.innerText = "Sessão em Andamento";
             subStatus.innerText = "Dia 1: Quebrando a Rotina";
-            mainAudio.play();
+            mainAudio.currentTime = 0; // Garante que comece do zero
+            mainAudio.play().catch(e => console.error("Erro ao tocar áudio principal:", e));
         }
     </script>
 </body>
